@@ -66,3 +66,9 @@ def search_history(query: str, path: str = DEFAULT_HISTORY_FILE) -> List[dict]:
         if query_lower in e.get("description", "").lower()
         or query_lower in e.get("cron", "").lower()
     ]
+
+
+def get_most_recent(path: str = DEFAULT_HISTORY_FILE) -> Optional[dict]:
+    """Return the most recently recorded history entry, or None if history is empty."""
+    entries = _load_history(path)
+    return entries[-1] if entries else None
