@@ -39,6 +39,21 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _handle_validate_mode(args: argparse.Namespace) -> int:
+    """Handle --validate mode. Returns exit code."""
+    result = validate(args.validate)
+    if result.is_valid:
+        print(f"✓ '{args.validate}' is a valid cron expression.")
+        if args.preview:
+            print(format_preview(args.validate, count=args.count))
+        return 0
+    else:
+        print(f"✗ Invalid cron expression: {args.validate}")
+        for error in result.errors:
+            print(f"  - {error}")
+        return 1
+
+
 def run(argv: list[str] | None = None) -> int:
     """Main entry point for the CLI. Returns exit code."""
     arg_parser = build_parser()
@@ -46,17 +61,7 @@ def run(argv: list[str] | None = None) -> int:
 
     # Validate-only mode
     if args.validate:
-        result = validate(args.validate)
-        if result.is_valid:
-            print(f"✓ '{args.validate}' is a valid cron expression.")
-            if args.preview:
-                print(format_preview(args.validate, count=args.count))
-            return 0
-        else:
-            print(f"✗ Invalid cron expression: {args.validate}")
-            for error in result.errors:
-                print(f"  - {error}")
-            return 1
+        return _handle_validate_mode(args)
 
     if not args.description:
         arg_parser.print_help()
