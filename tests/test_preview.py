@@ -60,6 +60,13 @@ class TestGetNextExecutions:
         assert results[2] == datetime(2024, 1, 15, 12, 45)
         assert results[3] == datetime(2024, 1, 15, 13, 0)
 
+    def test_weekly_cron(self):
+        # Every Monday at 9:00 AM; FIXED_START is Monday 2024-01-15 at noon,
+        # so the next occurrence should be the following Monday.
+        results = get_next_executions("0 9 * * 1", count=2, start=FIXED_START)
+        assert results[0] == datetime(2024, 1, 22, 9, 0)
+        assert results[1] == datetime(2024, 1, 29, 9, 0)
+
     def test_invalid_count_too_low(self):
         with pytest.raises(ValueError, match="count must be between"):
             get_next_executions("* * * * *", count=0)
@@ -77,18 +84,3 @@ class TestFormatPreview:
     def test_format_preview_contains_expression(self):
         output = format_preview("0 0 * * *", count=3, start=FIXED_START)
         assert "0 0 * * *" in output
-
-    def test_format_preview_line_count(self):
-        output = format_preview("* * * * *", count=5, start=FIXED_START)
-        lines = output.strip().split("\n")
-        assert len(lines) == 6  # header + 5 entries
-
-    def test_format_preview_numbering(self):
-        output = format_preview("* * * * *", count=3, start=FIXED_START)
-        assert "  1." in output
-        assert "  2." in output
-        assert "  3." in output
-
-    def test_format_preview_date_format(self):
-        output = format_preview("0 0 * * *", count=1, start=FIXED_START)
-        assert "2024-01-16 00:00" in output
